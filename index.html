@@ -5,29 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SpeakUp AI - Multilingual Practice Coach</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!-- Mammoth.js per llegir fitxers .docx -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-
-    <!-- PDF.js per llegir fitxers .pdf -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@400;500;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Personalització de scrollbars */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
         
-        /* Animació del pols per al gravador */
         @keyframes pulse-ring {
             0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
@@ -35,7 +24,6 @@
         }
         .animate-pulse-ring { animation: pulse-ring 2s infinite; }
         
-        /* Estils per a les anotacions de pronunciació amb <ruby> */
         rt {
             ruby-position: under;
             line-height: 1;
@@ -55,7 +43,6 @@
             <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">S</div>
             <span class="text-xl font-bold tracking-tight text-slate-800 hidden sm:block">SpeakUp AI</span>
             
-            <!-- Selector d'Idioma Font (Banderes) -->
             <div class="relative ml-2 sm:ml-4 flex items-center bg-slate-100 hover:bg-slate-200 transition-colors rounded-lg px-2 py-1 border border-slate-200 cursor-pointer">
                 <select id="select-source-lang" class="bg-transparent text-sm font-bold outline-none cursor-pointer appearance-none pr-5 z-10 relative text-slate-700 w-full" title="Idioma del document">
                     <option value="en">🇬🇧 EN</option>
@@ -91,7 +78,7 @@
 
     <div id="message-box" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg shadow-xl z-50 transition-opacity duration-300 opacity-0 hidden flex items-center gap-3 pointer-events-none">
         <i class="ph ph-info text-xl"></i>
-        <span id="message-box-text" class="font-medium text-sm">Missatge d'error</span>
+        <span id="message-box-text" class="font-medium text-sm">Missatge</span>
     </div>
 
     <div id="settings-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4 transition-all">
@@ -102,7 +89,7 @@
             </div>
             
             <div class="p-6 space-y-8 overflow-y-auto flex-1 custom-scrollbar">
-                <!-- Selector de Motor (Gratuït vs Gemini) -->
+                
                 <div class="space-y-3">
                     <h4 class="text-sm font-bold text-slate-700 flex items-center gap-2">
                         <i class="ph-fill ph-cpu text-indigo-500"></i> Motor de Processament
@@ -113,10 +100,8 @@
                     </div>
                     <p id="engine-hint" class="text-[11px] text-slate-500 leading-tight">Avaluació instantània sense claus. Traducció genèrica i diccionari obert.</p>
                 </div>
-
                 <div class="h-px bg-slate-100 w-full"></div>
 
-                <!-- Idioma de Traducció -->
                 <div class="space-y-3">
                     <h4 class="text-sm font-bold text-slate-700 flex items-center gap-2">
                         <i class="ph-fill ph-translate text-indigo-500"></i> Traductor (Idioma Destí)
@@ -130,37 +115,29 @@
                         <option value="pt">Portuguès</option>
                     </select>
                 </div>
-
                 <div class="h-px bg-slate-100 w-full"></div>
 
-                <!-- Gestió d'Anotacions (CSV) -->
                 <div class="space-y-4">
                     <h4 class="text-sm font-bold text-slate-700 flex items-center gap-2">
                         <i class="ph-fill ph-file-csv text-indigo-500"></i> Les Meves Anotacions (CSV)
                     </h4>
                     <p class="text-[11px] text-slate-500 mb-2">Pots desar i carregar les teves anotacions manualment.</p>
-                    
                     <div class="flex gap-3">
-                        <!-- Desar -->
-                        <button id="btn-export-annotations" class="flex-1 flex flex-col items-center justify-center gap-1.5 p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-colors shadow-sm">
-                            <i class="ph ph-download-simple text-xl"></i>
-                            <span class="text-xs font-bold">Desar al meu PC</span>
-                        </button>
-                        
-                        <!-- Carregar -->
                         <div class="flex-1 relative">
                             <input type="file" id="input-import-annotations" accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                            <button class="w-full h-full flex flex-col items-center justify-center gap-1.5 p-3 bg-slate-50 text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors shadow-sm">
+                            <button class="w-full h-full flex flex-col items-center justify-center gap-1.5 p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-colors shadow-sm">
                                 <i class="ph ph-upload-simple text-xl"></i>
                                 <span class="text-xs font-bold">Carregar CSV</span>
                             </button>
                         </div>
+                        <button id="btn-export-annotations" class="flex-1 flex flex-col items-center justify-center gap-1.5 p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl hover:bg-red-100 transition-colors shadow-sm">
+                            <i class="ph ph-download-simple text-xl"></i>
+                            <span class="text-xs font-bold">Desar al meu PC</span>
+                        </button>
                     </div>
                 </div>
-
                 <div class="h-px bg-slate-100 w-full"></div>
 
-                <!-- Aparença -->
                 <div class="space-y-6">
                     <h4 class="text-sm font-bold text-slate-700 flex items-center gap-2">
                         <i class="ph-fill ph-text-t text-indigo-500"></i> Aparença de Lectura
@@ -188,10 +165,8 @@
                         <input type="range" id="input-line-height" min="1.0" max="3.0" step="0.1" value="1.6" class="w-full accent-indigo-600">
                     </div>
                 </div>
-
                 <div class="h-px bg-slate-100 w-full"></div>
 
-                <!-- Micròfon -->
                 <div class="space-y-3">
                     <h4 class="text-sm font-bold text-slate-700 flex items-center gap-2">
                         <i class="ph-fill ph-microphone text-indigo-500"></i> Maquinari
@@ -201,10 +176,8 @@
                         <option value="">Micròfon per defecte del sistema</option>
                     </select>
                 </div>
-
                 <div class="h-px bg-slate-100 w-full"></div>
 
-                <!-- API Key Gemini -->
                 <div class="space-y-2 pb-4">
                     <label class="text-sm font-bold text-slate-700 block flex items-center gap-2">
                         <i class="ph-fill ph-key text-indigo-500"></i> Clau API de Gemini
@@ -214,7 +187,6 @@
                 </div>
             </div>
 
-            <!-- Botó Tancar Inferior -->
             <div class="p-4 border-t border-slate-100 bg-slate-50 shrink-0">
                 <button id="btn-close-settings-bottom" class="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-colors">
                     Tancar Finestra
@@ -223,7 +195,6 @@
         </div>
     </div>
 
-    <!-- Modal de Flashcards -->
     <div id="flashcards-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4 transition-all">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
             <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
@@ -239,7 +210,6 @@
         </div>
     </div>
 
-    <!-- Modal d'Anotació Individual (Ruby) -->
     <div id="annotation-modal" class="fixed inset-0 bg-slate-900/40 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col">
             <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
@@ -262,7 +232,6 @@
 
     <main class="flex flex-1 flex-col md:flex-row overflow-hidden p-4 md:p-6 gap-6 relative">
         
-        <!-- Pantalla Inicial -->
         <div id="welcome-screen" class="flex-1 flex flex-col items-center justify-center bg-white border border-slate-200 rounded-2xl shadow-sm w-full h-full transition-opacity">
             <div class="text-center space-y-4 max-w-md mx-auto p-6">
                 <div class="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 transform rotate-3">
@@ -274,13 +243,12 @@
                 <div class="pt-6 mt-6 border-t border-slate-100 text-sm text-slate-400 space-y-2 text-left bg-slate-50 p-4 rounded-xl">
                     <p><i class="ph-fill ph-mouse-left mr-2 text-indigo-400"></i> <strong>Fes clic:</strong> Escoltar una paraula.</p>
                     <p><i class="ph-fill ph-mouse-left mr-0.5 text-indigo-400"></i><i class="ph-fill ph-mouse-left mr-1 text-indigo-400"></i> <strong>Doble clic:</strong> Obrir el diccionari / Traduir.</p>
-                    <p><i class="ph-fill ph-mouse-right mr-2 text-indigo-400"></i> <strong>Clic dret:</strong> Afegir anotació (Ruby).</p>
+                    <p><i class="ph-fill ph-mouse-right mr-2 text-indigo-400"></i> <strong>Clic dret:</strong> Afegir anotació visual a la paraula.</p>
                     <p><i class="ph-fill ph-selection-all mr-2 text-indigo-400"></i> <strong>Subratllar text:</strong> Limitar el "Play" només a la selecció.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Secció de Lectura -->
         <section id="reader-section" class="flex-[3] flex flex-col bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden min-w-0 hidden relative">
             <div class="px-6 md:px-8 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
                 <h2 class="text-sm font-bold text-slate-500 uppercase tracking-widest truncate mr-4 flex items-center gap-2">
@@ -294,7 +262,7 @@
             
             <div class="flex-1 overflow-y-auto relative scroll-smooth p-6 md:p-12 flex flex-col custom-scrollbar" id="scroll-container">
                 <div class="max-w-3xl w-full mx-auto my-auto text-center py-4">
-                    <p id="text-canvas" class="text-2xl md:text-3xl leading-relaxed text-slate-800 font-medium select-text transition-all duration-300"></p>
+                    <p id="text-canvas" class="leading-relaxed text-slate-800 font-medium select-text transition-all duration-300"></p>
                     
                     <div class="h-px w-full bg-slate-100 my-10 relative">
                         <div class="absolute left-1/2 -translate-x-1/2 -top-3 bg-white px-4 text-slate-300"><i class="ph ph-translate text-lg"></i></div>
@@ -313,14 +281,12 @@
             </div>
 
             <div class="h-24 bg-white border-t border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0 relative z-10 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.05)]">
-                <!-- Velocitat -->
                 <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-full p-1 shadow-inner hidden md:flex">
                     <button id="btn-speed-down" class="p-2 text-slate-500 hover:bg-white hover:shadow hover:text-indigo-600 rounded-full transition-all disabled:opacity-30 disabled:hover:shadow-none" title="Més lent"><i class="ph ph-minus text-lg"></i></button>
                     <span id="speed-display" class="text-xs font-bold text-slate-700 w-12 text-center font-mono tracking-wider">1.0x</span>
                     <button id="btn-speed-up" class="p-2 text-slate-500 hover:bg-white hover:shadow hover:text-indigo-600 rounded-full transition-all disabled:opacity-30 disabled:hover:shadow-none" title="Més ràpid"><i class="ph ph-plus text-lg"></i></button>
                 </div>
 
-                <!-- Reproducció -->
                 <div class="flex items-center justify-center gap-4 md:gap-6 flex-1">
                     <button id="btn-prev" class="p-3 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-full transition-colors disabled:opacity-30" title="Anterior Fragment"><i class="ph-fill ph-skip-back text-2xl"></i></button>
                     <button id="btn-repeat" class="p-3 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-full transition-colors" title="Repetir"><i class="ph ph-arrow-counter-clockwise text-2xl"></i></button>
@@ -338,7 +304,6 @@
                     <button id="btn-next" class="p-3 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-full transition-colors disabled:opacity-30" title="Següent Fragment"><i class="ph-fill ph-skip-forward text-2xl"></i></button>
                 </div>
                 
-                <!-- Control de Volum -->
                 <div class="flex items-center justify-end gap-2 w-[140px] hidden md:flex">
                     <button id="btn-mute" class="text-slate-400 hover:text-indigo-600 transition-colors" title="Silenciar">
                         <i id="icon-vol" class="ph-fill ph-speaker-high text-xl"></i>
@@ -348,7 +313,6 @@
             </div>
         </section>
 
-        <!-- Barra Lateral -->
         <aside id="sidebar-section" class="flex-1 flex flex-col gap-6 md:min-w-[340px] md:max-w-[380px] overflow-hidden hidden transition-all duration-500">
             
             <div id="audio-playback-card" class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 shrink-0 flex flex-col gap-4 hidden">
@@ -358,7 +322,6 @@
                 <audio id="recorded-audio" controls class="w-full h-10 outline-none rounded-lg"></audio>
             </div>
 
-            <!-- Diccionari -->
             <div id="dictionary-card" class="p-6 bg-gradient-to-b from-indigo-50 to-white border border-indigo-100 rounded-2xl text-left w-full mx-auto shadow-sm hidden relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-100 rounded-bl-full -z-10 opacity-50"></div>
                 <div class="flex items-start justify-between mb-4">
@@ -420,7 +383,6 @@
 
     </main>
 
-    <!-- Barra Inferior -->
     <footer class="bg-slate-50 border-t border-slate-200 px-6 py-3 flex flex-col sm:flex-row items-center justify-between shrink-0 text-xs font-medium text-slate-400 gap-3 sm:gap-0 z-20">
         <div class="flex flex-col items-center sm:items-start gap-1 uppercase tracking-widest text-[9px]">
             <span class="flex items-center gap-1.5 bg-white px-2 py-1 rounded shadow-sm border border-slate-100">
@@ -436,12 +398,10 @@
     </footer>
 
     <script>
-        // CONFIGURACIÓ DE LIBRERIES
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
         if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-        // MAPA D'IDIOMES (Per a Traduccions de Destí)
         const langMap = {
             'ca': { local: 'català', eng: 'Catalan' },
             'es': { local: 'castellà', eng: 'Spanish' },
@@ -451,7 +411,6 @@
             'pt': { local: 'portuguès', eng: 'Portuguese' }
         };
 
-        // LLENGÜES D'ORIGEN (Per a Detecció, TTS, ASR, Gemini)
         const sourceLanguages = {
             'en': { flag: '🇬🇧 EN', name: 'anglès', tts: 'en-US', asr: 'en-US' },
             'es': { flag: '🇪🇸 ES', name: 'castellà', tts: 'es-ES', asr: 'es-ES' },
@@ -462,11 +421,10 @@
             'pt': { flag: '🇵🇹 PT', name: 'portuguès', tts: 'pt-PT', asr: 'pt-PT' }
         };
 
-        // ESTAT GLOBAL
         const state = {
-            engine: 'free', // 'free' o 'gemini'
+            engine: 'free', 
             geminiApiKey: "",
-            sourceLang: 'en', // Idioma per defecte del document original
+            sourceLang: 'en', 
             sentences: [],
             currentIndex: 0,
             isPlaying: false,
@@ -474,7 +432,6 @@
             isEvaluating: false,
             playbackRate: 1.0,
             
-            // Per reproducció exacta amb DOM selection
             customSelectionByteStart: -1,
             customSelectionByteEnd: -1,
             activeByteIndex: -1,
@@ -590,7 +547,6 @@
         let audioContext = null;
         let analyser = null;
         let animationFrameId = null;
-        let highlightTimerId = null;
 
         function showMessage(text, isError = true) {
             els.messageBoxText.textContent = text;
@@ -666,12 +622,9 @@
             saveToLocal();
         }
 
-        // Detecció d'Idioma
         function detectLanguage(text) {
             const counts = { en: 0, es: 0, ca: 0, fr: 0, de: 0, it: 0, pt: 0 };
             const words = text.toLowerCase().match(/[\p{L}\p{N}]+/gu) || [];
-            
-            // Stop words hiper freqüents exclusives de cada idioma
             const stopWords = {
                 en: ['the', 'and', 'to', 'of', 'is', 'it', 'you', 'that', 'with'],
                 es: ['el', 'la', 'de', 'que', 'y', 'en', 'un', 'los', 'por', 'para', 'con'],
@@ -688,7 +641,7 @@
                 }
             });
 
-            let detected = 'en'; // Default
+            let detected = 'en'; 
             let max = 0;
             for (let lang in counts) {
                 if (counts[lang] > max) { max = counts[lang]; detected = lang; }
@@ -703,9 +656,7 @@
         });
 
         function updateEngineUI() {
-            if (!state.geminiApiKey) {
-                state.engine = 'free'; // Força gratuït si no hi ha clau
-            }
+            if (!state.geminiApiKey) state.engine = 'free';
             
             if (state.engine === 'free') {
                 els.btnEngineFree.className = "flex-1 text-sm font-semibold py-2 rounded-md bg-white shadow-sm text-indigo-600 transition-all";
@@ -727,8 +678,7 @@
         els.btnEngineGemini.addEventListener('click', () => {
             if (!state.geminiApiKey) {
                 showMessage("Has d'afegir una Clau API de Gemini (a sota) abans d'activar aquest mode.", true);
-                els.apiKeyInput.focus();
-                return;
+                els.apiKeyInput.focus(); return;
             }
             state.engine = 'gemini'; updateEngineUI();
         });
@@ -739,7 +689,6 @@
             updateEngineUI();
         });
 
-        // APIS GRATUÏTES
         async function translateFreeAPI(text, fromLang, toLang) {
             const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromLang}|${toLang}`);
             const data = await res.json();
@@ -810,7 +759,6 @@
             return { score, overallFeedback: feedback, mistakes };
         }
 
-        // APIS GEMINI
         async function fetchGeminiAPI(payload, useJsonSchema = false) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.geminiApiKey}`;
             const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -886,7 +834,7 @@
             link.href = url; link.download = rawFilename;
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
-            showMessage("Desat (Revisa les baixades segons la configuració del teu navegador).", false);
+            showMessage("Desat a Descàrregues (Bloqueig de seguretat salvat).", false);
         });
 
         els.inputImportAnnotations.addEventListener('change', (e) => {
@@ -907,7 +855,7 @@
                 }
                 state.documentAnnotations = newAnnotations; saveToLocal();
                 if (!els.readerSection.classList.contains('hidden')) renderCurrentFragment();
-                showMessage(`S'han carregat ${count} anotacions!`, false);
+                showMessage(`S'han carregat ${count} anotacions de l'arxiu!`, false);
             };
             reader.readAsText(file); e.target.value = '';
         });
@@ -938,7 +886,6 @@
                     state.currentDocId = file.name;
                     els.docTitleDisplay.textContent = state.currentDocId;
                     
-                    // Detectar idioma
                     state.sourceLang = detectLanguage(text);
                     els.sourceLangSelect.value = state.sourceLang;
 
@@ -1047,31 +994,23 @@
             const v = synth.getVoices().filter(v => v.lang.startsWith(currentUtterance.lang.split('-')[0]));
             if (v.length > 0) currentUtterance.voice = v.find(v => v.name.includes('Google') || v.localService) || v[0];
 
-            let startTime = 0; let boundaryFiredRecently = false;
-            const words = []; let match; const regex = /[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu;
-            while ((match = regex.exec(textToPlay)) !== null) words.push({ start: match.index, length: match[0].length });
-
             currentUtterance.onstart = () => {
-                setPlayState(true); startTime = performance.now();
-                highlightTimerId = setInterval(() => {
-                    if (!boundaryFiredRecently && words.length > 0) {
-                        const est = Math.floor(((performance.now() - startTime) / 1000) * 22 * state.playbackRate);
-                        let w = words.find(w => est <= w.start + w.length) || words[words.length - 1];
-                        state.activeByteIndex = offset + w.start; state.activeByteLength = w.length;
-                        updateHighlights();
-                    }
-                    boundaryFiredRecently = false;
-                }, 150);
+                setPlayState(true); 
+                state.activeByteIndex = offset;
             };
+
             currentUtterance.onboundary = (e) => {
-                boundaryFiredRecently = true; state.activeByteIndex = offset + e.charIndex; state.activeByteLength = e.charLength || 0; updateHighlights();
+                state.activeByteIndex = offset + e.charIndex; 
+                state.activeByteLength = e.charLength || 0; 
+                updateHighlights();
             };
+
             currentUtterance.onend = currentUtterance.onerror = () => cleanupTTS();
             synth.speak(currentUtterance);
         }
 
         function stopTTS() { if (synth.speaking) synth.cancel(); cleanupTTS(); }
-        function cleanupTTS() { if (highlightTimerId) clearInterval(highlightTimerId); setPlayState(false); state.activeByteIndex = -1; updateHighlights(); }
+        function cleanupTTS() { setPlayState(false); state.activeByteIndex = -1; updateHighlights(); }
         
         function setPlayState(isPlaying) {
             state.isPlaying = isPlaying;
@@ -1080,16 +1019,22 @@
         }
 
         function updateHighlights() {
+            const activeIdx = state.activeByteIndex;
+            
             els.textCanvas.querySelectorAll('span').forEach(span => {
                 if(!span.dataset.start) return;
-                let s = parseInt(span.dataset.start), e = parseInt(span.dataset.end), hl = false, cus = false;
+                let s = parseInt(span.dataset.start), e = parseInt(span.dataset.end);
                 
-                if (state.isPlaying && state.activeByteIndex !== -1 && s < state.activeByteIndex + state.activeByteLength && e > state.activeByteIndex) hl = true;
-                if (state.customSelectionByteStart !== -1 && s < state.customSelectionByteEnd && e > state.customSelectionByteStart) cus = true;
+                let isHighlighted = (state.isPlaying && activeIdx !== -1 && s <= activeIdx && e > activeIdx);
+                let isCustomSelected = (state.customSelectionByteStart !== -1 && s < state.customSelectionByteEnd && e > state.customSelectionByteStart);
                 
-                if (hl) span.className = 'word-span cursor-pointer text-white bg-indigo-600 shadow-md transition-colors inline-block rounded relative z-10 scale-[1.02] px-1';
-                else if (cus) span.className = 'word-span cursor-pointer bg-blue-200 border-b-2 border-blue-400 transition-colors inline-block rounded-t-sm px-0.5';
-                else if (span.classList.contains('word-span')) span.className = 'word-span cursor-pointer hover:text-indigo-600 hover:bg-indigo-50 transition-colors inline-block rounded px-0.5';
+                if (isHighlighted) {
+                    span.className = 'word-span cursor-pointer text-white bg-indigo-600 shadow-sm transition-all duration-75 inline-block rounded relative z-10 px-1';
+                } else if (isCustomSelected) {
+                    span.className = 'word-span cursor-pointer bg-blue-200 border-b-2 border-blue-400 transition-colors inline-block rounded-t-sm px-0.5';
+                } else if (span.classList.contains('word-span')) {
+                    span.className = 'word-span cursor-pointer hover:text-indigo-600 hover:bg-indigo-50 transition-colors inline-block rounded px-0.5';
+                }
             });
         }
         
@@ -1178,7 +1123,7 @@
                     else if (hasStartedSpeaking && performance.now() - silenceStart > 1500) return stopRecording();
                     animationFrameId = requestAnimationFrame(checkSilence);
                 }; checkSilence();
-            } catch (err) { showMessage("No s'ha pogut accedir al micròfon."); }
+            } catch (err) { showMessage("No s'ha pogut accedir al micròfon. Dona els permisos al navegador."); }
         }
 
         function stopRecording() {
@@ -1374,17 +1319,18 @@
 
         window.addEventListener('load', async () => {
             try {
+                // Sol·licitem permisos de micro de forma transparent al primer load per no trencar el flux
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 stream.getTracks().forEach(t => t.stop()); 
                 await populateMics();
             } catch (err) {
-                console.warn("L'usuari ha denegat el micròfon o no hi ha micròfons inicialment.");
+                console.warn("L'usuari ha denegat el micròfon o no hi ha micròfons disponibles inicialment.");
             }
             
             loadFromLocal();
             
             if (!SpeechRecognition && state.engine === 'free') {
-                showMessage("El teu navegador no suporta el reconeixement de veu gratuït. L'avaluació fallarà.", true);
+                showMessage("El teu navegador no suporta el reconeixement de veu gratuït de forma nativa.", true);
             }
         });
     </script>
