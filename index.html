@@ -356,7 +356,8 @@
             
             <div class="flex-1 overflow-y-auto relative scroll-smooth p-6 md:p-12 flex flex-col custom-scrollbar">
                 <div class="max-w-3xl w-full mx-auto my-auto flex flex-col items-center">
-                    <p id="text-canvas" class="leading-relaxed text-slate-800 font-medium select-text w-full text-justify"></p>
+                    <!-- CANVI: text-justify ha passat a text-left per afavorir la lectura i evitar espais buits -->
+                    <p id="text-canvas" class="leading-relaxed text-slate-800 font-medium select-text w-full text-left"></p>
                     
                     <div class="h-px w-full bg-slate-100 my-10 relative">
                         <div class="absolute left-1/2 -translate-x-1/2 -top-3 bg-white px-4 text-slate-300"><i class="ph ph-translate text-lg"></i></div>
@@ -1037,7 +1038,8 @@
                     const annotation = state.documentAnnotations[part.toLowerCase()];
                     if (annotation) span.innerHTML = `<ruby>${part}<rt>${annotation}</rt></ruby>`;
                     else span.textContent = part;
-                    span.className = 'word-span cursor-pointer hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors';
+                    // S'ha eliminat l'inline-block i px-0.5 per evitar que la puntuació se separi de la paraula
+                    span.className = 'word-span cursor-pointer hover:text-indigo-600 hover:bg-indigo-50 transition-colors rounded';
                     span.onclick = () => { const sel = window.getSelection(); if (!sel || sel.isCollapsed) playWord(part); };
                     span.ondblclick = () => { const sel = window.getSelection(); if (sel) sel.removeAllRanges(); lookupWord(part); };
                     span.oncontextmenu = (e) => { e.preventDefault(); openAnnotationModal(part); };
@@ -1052,6 +1054,7 @@
         function playTTS() {
             if (state.sentences.length === 0) return;
             
+            // Forçar reinici de veus en alguns navegadors com Chrome per evitar bugs
             window.speechSynthesis.cancel();
             stopShadowingListening();
             if (shadowingTimeout) clearTimeout(shadowingTimeout);
@@ -1082,12 +1085,14 @@
             }
 
             let startTime = 0; 
+            let lastBoundaryIdx = 0;
 
             currentUtterance.onstart = () => {
                 setPlayState(true); startTime = performance.now(); state.activeByteIndex = offset;
             };
 
             currentUtterance.onboundary = (e) => {
+                // Aquesta resposta nativa marca el ritme exacte sense l'efecte de salts (jitter)
                 state.activeByteIndex = offset + e.charIndex; 
                 state.activeByteLength = e.charLength || 0; 
                 updateHighlights();
@@ -1217,8 +1222,9 @@
                 let isHighlighted = (state.isPlaying && activeIdx !== -1 && s <= activeIdx && e > activeIdx);
                 let isCustomSelected = (state.customSelectionByteStart !== -1 && s < state.customSelectionByteEnd && e > state.customSelectionByteStart);
                 
+                // Mantenim format lleuger que respecti marges d'idiomes i puntuacions
                 if (isHighlighted) {
-                    span.className = 'word-span cursor-pointer text-white bg-indigo-600 shadow-sm transition-colors duration-75 rounded relative z-10';
+                    span.className = 'word-span cursor-pointer text-white bg-indigo-600 shadow-sm transition-all duration-75 rounded relative z-10';
                 } else if (isCustomSelected) {
                     span.className = 'word-span cursor-pointer bg-blue-200 border-b-2 border-blue-400 transition-colors rounded-t-sm';
                 } else {
@@ -1526,19 +1532,36 @@
         els.btnExportWord.addEventListener('click', () => {
             if (state.sentences.length === 0) return showMessage("No hi ha text per exportar.", true);
             
+            // Format MHTML preparat exclusivament per Microsoft Word (suporta Paginació nativa)
             let htmlContent = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <html xmlns:v="urn:schemas-microsoft-com:vml"
+                      xmlns:o="urn:schemas-microsoft-com:office:office"
+                      xmlns:w="urn:schemas-microsoft-com:office:word"
+                      xmlns:m="http://schemas.microsoft.com/office/2004/12/omml"
+                      xmlns="http://www.w3.org/TR/REC-html40">
                 <head>
                     <meta charset='utf-8'>
                     <title>Document Anotat - SpeakUp</title>
                     <style>
+                        /* Forçant seccions perquè Word processi els Headers/Footers */
+                        @page WordSection1 {
+                            size: 595.3pt 841.9pt; /* A4 */
+                            margin: 70.85pt 70.85pt 70.85pt 70.85pt;
+                            mso-header-margin: 35.4pt;
+                            mso-footer-margin: 35.4pt;
+                            mso-paper-source: 0;
+                            mso-footer: f1; /* Enllaça el peu de pàgina f1 */
+                        }
+                        div.WordSection1 { page: WordSection1; }
+                        
                         body { font-family: 'Lexend', Arial, sans-serif; font-size: 14pt; line-height: 2.2; padding: 30px; }
-                        p { margin-bottom: 24px; text-align: justify; }
+                        p { margin-bottom: 24px; text-align: left; }
                         ruby { ruby-align: center; }
                         rt { font-size: 9pt; color: #ef4444; font-weight: bold; }
                     </style>
                 </head>
                 <body>
+                <div class="WordSection1">
             `;
             
             state.sentences.forEach(sentence => {
@@ -1559,7 +1582,17 @@
                 htmlContent += `</p>`;
             });
             
-            htmlContent += `</body></html>`;
+            // Afegim la definició oculta del peu de pàgina exclusiu de Word amb el codi de paginació automàtica
+            htmlContent += `
+                    <!-- Footer amagat per MS Word -->
+                    <div style='mso-element:footer' id="f1">
+                        <p style="text-align:center; font-size:10pt;">
+                            - <span style='mso-field-code:" PAGE "'></span> -
+                        </p>
+                    </div>
+                </div>
+                </body></html>
+            `;
             
             const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
@@ -1678,6 +1711,7 @@
         });
 
         window.addEventListener('load', async () => {
+            // Força càrrega de veus en obrir l'app
             if (window.speechSynthesis) {
                 window.speechSynthesis.getVoices();
                 window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
